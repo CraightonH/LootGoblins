@@ -2,18 +2,68 @@ name: Release and deploy
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing annotated tag to publish or recover
+        required: true
+        type: string
 permissions:
   contents: write
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 jobs:
   release:
-    uses: CraightonH/wow-addon-template/.github/workflows/reusable-release.yml@workflows-v1.0.1
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      # Explicit tag checkout also allows recovery from main without moving a tag.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: CraightonH/wow-addon-template
+          ref: workflows-v1.0.1
+          path: .addon-tooling
+          sparse-checkout: /shared/
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: Install Lua runtimes
+        run: sudo apt-get update -qq && sudo apt-get install -y lua5.1 lua5.4
+      - name: Validate configuration and annotated tag
+        run: python3 .addon-tooling/shared/release_tools.py prepare
+      - name: Run addon checks
+        run: make test LUA=lua5.1 && make test LUA=lua5.4
+      - name: Build release package
+        run: python3 scripts/package.py
+      - name: Validate package and record its identity
+        run: python3 .addon-tooling/shared/release_tools.py manifest
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-${{ env.RELEASE_TAG }}
+          path: |
+            dist/*.zip
+            dist/release.json
+          if-no-files-found: error
+      - name: Publish the validated artifact to GitHub
+        run: |
+          mkdir -p .release-artifact
+          cp dist/*.zip dist/release.json .release-artifact/
+          python3 .addon-tooling/shared/release_tools.py github
+  curseforge:
+    needs: release
+    # workflows-v1.0.1's release orchestrator uses nested relative workflow
+    # paths that GitHub cannot resolve here. Call the deploy workflow directly.
+    uses: CraightonH/wow-addon-template/.github/workflows/reusable-curseforge.yml@workflows-v1.0.1
     with:
       tooling-ref: workflows-v1.0.1
-      test-command: make test LUA=lua5.1 && make test LUA=lua5.4
-      package-command: python3 scripts/package.py
-      publish-curseforge: true
+      tag: ${{ inputs.tag || github.ref_name }}
     secrets:
       CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}

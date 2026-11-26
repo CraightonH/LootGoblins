@@ -35,4 +35,8 @@ If an upload has an ambiguous network failure, or succeeded but saving its recei
 
 ## Adopt shared updates
 
-All three caller workflows reference `workflows-v1.0.1`. To adopt a new shared release, update both `uses: ...@VERSION` and `tooling-ref: VERSION` in each caller and verify branch CI. No shared scripts need to be copied into LootGoblins.
+The workflows pin shared tooling to `workflows-v1.0.1`. The release caller explicitly checks out the selected tag, runs checks and the local builder, and calls the shared validation/GitHub publication script. It invokes the shared CurseForge workflow directly because that version's nested relative workflow paths fail resolution when called cross-repository. No shared scripts are vendored.
+
+To recover a tag whose release workflow could not start, run **Release and deploy** manually on `main`, entering the existing tag. The workflow definition comes from main, but the checked-out source, archive, manifest, and CurseForge receipt all identify the original tag commit. Never move the tag. **Retry existing release deployment** remains the upload-only recovery path after a GitHub release already exists.
+
+When adopting newer shared tooling, update its pinned `uses`, checkout `ref`, and `tooling-ref` values together and verify branch CI.
