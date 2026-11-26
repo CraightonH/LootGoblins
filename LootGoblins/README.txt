@@ -1,4 +1,4 @@
-LootGoblin 0.3.1-alpha
+LootGoblins 0.3.1-alpha
 
 A standalone group-loot addon targeting WoW Forever 1.60.1 (Interface 16001).
 The exact client build has not been confirmed. This is an alpha, checked with
@@ -7,9 +7,9 @@ simulated WoW APIs, not tested inside a running game client.
 INSTALL
 
 1. Close WoW, or return to the character selection screen.
-2. Extract the LootGoblin folder into your Forever client's Interface/AddOns/.
-   The final path should be Interface/AddOns/LootGoblin/LootGoblin.toc.
-3. Enable LootGoblin in the AddOns list. Disable other group-loot frame replacements
+2. Extract the LootGoblins folder into your Forever client's Interface/AddOns/.
+   The final path should be Interface/AddOns/LootGoblins/LootGoblins.toc.
+3. Enable LootGoblins in the AddOns list. Disable other group-loot frame replacements
    such as BetterGroupLoot while evaluating this alpha.
 4. Enter the game and run /lg demo. No party is required.
 5. Run /lg for settings. If you want the default popups back, /lg native
@@ -54,7 +54,7 @@ Panels stay through the roll and for 20 seconds after a confirmed result.
 Hovering postpones closing; Pin keeps an item open indefinitely. Set the result
 timeout to 0 to keep all results until dismissed. The live-panel session view
 resets on reload. Persistent drop history is separate and survives normal
-logout/reload through account-level LootGoblinDB SavedVariables.
+logout/reload through account-level LootGoblinsDB SavedVariables.
 Pinned and live panels are not evicted by the session panel limit.
 
 PERSISTENT HISTORY AND STATISTICS
@@ -93,7 +93,7 @@ record limit (100 to 50,000) in Advanced; reducing it prunes the oldest records.
 There is no cloud sync or cross-account collection. The account-level file is
 shared by your characters using this installation and WoW account. The game
 writes SavedVariables during normal logout/reload; a crash can lose unsaved data.
-Back up WTF/Account/<your account>/SavedVariables/LootGoblin.lua if desired.
+Back up WTF/Account/<your account>/SavedVariables/LootGoblins.lua if desired.
 No retrospective or unobserved drops are fabricated, and demo rolls are excluded.
 If an identical drop invalidates an earlier association, its archived record is
 marked uncertain and removed from rate calculations. Late confirmed results
@@ -121,16 +121,16 @@ COMMANDS
 /lg session      Toggle the current live-panel session view
 /lg clear        Dismiss completed results; leave live items alone
 /lg native       Restore default loot popups
-/lootgoblin          Same commands as /lg
+/lootgoblins          Same commands as /lg
 
 KNOWN LIMITS AND VERIFICATION
 
 Forever uses encounter loot history instead of the old Classic GetItem /
 GetPlayerInfo API. Its history states differ from RollOnLoot button numbers.
-LootGoblin uses the modern history API and explicit mappings.
+LootGoblins uses the modern history API and explicit mappings.
 
 No documented API maps a rollID directly to its encounter/drop identity.
-LootGoblin accepts only unique item-link matches with start times within four
+LootGoblins accepts only unique item-link matches with start times within four
 seconds. It never guesses duplicate-item order. Identical items arriving within
 eight seconds invalidate an earlier speculative association; player details
 then show as uncertain. This favors accurate attribution over complete data.
@@ -143,7 +143,7 @@ winner reopens the panel and starts a fresh result timeout.
 
 Unknown APIs leave the native loot interface intact. Gamepad mode also keeps
 its native presentation; this alpha targets mouse/keyboard. During reloads,
-native rolls without a LootGoblin record remain visible. Live-roll reconstruction
+native rolls without a LootGoblins record remain visible. Live-roll reconstruction
 is not implemented. Completed persistent drop history is retained across reloads.
 
 Before treating this as ready for regular play, validate on your actual client:
@@ -175,4 +175,4 @@ https://github.com/Karl-HeinzSchneider/WoW-BetterGroupLoot/blob/main/BetterGroup
 https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/LootHistoryDocumentation.lua
 https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_UIPanels_Game/Mainline/GroupLootFrame.lua
 
-LootGoblin is a separate implementation, not a modified BetterGroupLoot release.
+LootGoblins is a separate implementation, not a modified BetterGroupLoot release.

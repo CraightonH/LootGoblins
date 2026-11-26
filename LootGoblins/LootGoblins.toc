@@ -1,10 +1,10 @@
 ## Interface: 16001
-## Title: LootGoblin
+## Title: LootGoblins
 ## Notes: Per-item group loot decisions, player rolls and explicit results.
-## Author: LootGoblin contributors
+## Author: LootGoblins contributors
 ## Version: 0.3.1-alpha
 ## X-Curse-Project-ID: 1806558
-## SavedVariables: LootGoblinDB
+## SavedVariables: LootGoblinsDB
 Model.lua
 History.lua
 UI.lua

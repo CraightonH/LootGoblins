@@ -16,9 +16,9 @@ class PackagingTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
-        self.addon = self.root / "LootGoblin"
+        self.addon = self.root / "LootGoblins"
         self.addon.mkdir()
-        self.toc = self.addon / "LootGoblin.toc"
+        self.toc = self.addon / "LootGoblins.toc"
         self.original = "## Interface: 16001\n## Version: 0.3.1-alpha\nCore.lua\n"
         self.toc.write_text(self.original)
         (self.addon / "Core.lua").write_text("-- code\n")
@@ -33,9 +33,9 @@ class PackagingTests(unittest.TestCase):
     def test_tag_version_only_changes_packaged_toc(self):
         path = package.build("1.0.0-beta.2")
         with zipfile.ZipFile(path) as archive:
-            self.assertIn(b"## Version: 1.0.0-beta.2", archive.read("LootGoblin/LootGoblin.toc"))
-            self.assertEqual(archive.read("LootGoblin/LICENSE"), b"License fixture\n")
-            self.assertNotIn("LootGoblin/development.lua", archive.namelist())
+            self.assertIn(b"## Version: 1.0.0-beta.2", archive.read("LootGoblins/LootGoblins.toc"))
+            self.assertEqual(archive.read("LootGoblins/LICENSE"), b"License fixture\n")
+            self.assertNotIn("LootGoblins/development.lua", archive.namelist())
         self.assertEqual(self.toc.read_text(), self.original)
 
     def test_identical_inputs_produce_identical_archives(self):

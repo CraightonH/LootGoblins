@@ -1,4 +1,4 @@
-# LootGoblin
+# LootGoblins
 
 Compact group-loot panels and persistent roll history for **WoW Forever 1.60.1**, provisionally targeting Interface `16001`.
 
@@ -18,9 +18,9 @@ Compact group-loot panels and persistent roll history for **WoW Forever 1.60.1**
 ## Install the alpha
 
 1. Download this repository with **Code → Download ZIP**, or clone it.
-2. Copy the inner `LootGoblin/` directory into the Forever client's `Interface/AddOns/` directory.
-3. Confirm the resulting path is `Interface/AddOns/LootGoblin/LootGoblin.toc`.
-4. Enable LootGoblin in the character selection AddOns list. Disable other group-loot replacements, including BetterGroupLoot, while evaluating it.
+2. Copy the inner `LootGoblins/` directory into the Forever client's `Interface/AddOns/` directory.
+3. Confirm the resulting path is `Interface/AddOns/LootGoblins/LootGoblins.toc`.
+4. Enable LootGoblins in the character selection AddOns list. Disable other group-loot replacements, including BetterGroupLoot, while evaluating it.
 5. Run `/lg demo` to preview three simulated rolls, then `/lg` for settings.
 
 You can also build an addon-only ZIP:
@@ -29,7 +29,7 @@ You can also build an addon-only ZIP:
 python3 scripts/package.py
 ```
 
-This writes `dist/LootGoblin-0.3.1-alpha.zip`. Extract it into `Interface/AddOns/`.
+This writes `dist/LootGoblins-0.3.1-alpha.zip`. Extract it into `Interface/AddOns/`.
 
 ## Commands
 
@@ -44,7 +44,7 @@ This writes `dist/LootGoblin-0.3.1-alpha.zip`. Extract it into `Interface/AddOns
 | `/lg clear` | Dismiss completed panels |
 | `/lg native` | Immediately restore the default loot popups |
 
-`/lootgoblin` is an alias for `/lg`.
+`/lootgoblins` is an alias for `/lg`.
 
 ## Interpreting the statistics
 
@@ -56,7 +56,7 @@ Characters use GUIDs when supplied by the client and name-realm fallbacks otherw
 
 History records only group-loot rolls observed while the addon is running. The default retention is the newest **5,000 drops**, configurable from 100 to 50,000 in Advanced settings. Decreasing the limit prunes older records.
 
-Data is kept in account-level `LootGoblinDB` SavedVariables and shared by your characters using the same WoW installation/account. The game saves it during normal logout or reload; a crash can lose unsaved changes. There is no cloud sync, retrospective collection, or automatic chat posting. Demo rolls never enter persistent statistics.
+Data is kept in account-level `LootGoblinsDB` SavedVariables and shared by your characters using the same WoW installation/account. The game saves it during normal logout or reload; a crash can lose unsaved changes. There is no cloud sync, retrospective collection, or automatic chat posting. Demo rolls never enter persistent statistics.
 
 ## Browser previews
 
@@ -115,21 +115,21 @@ The client build is still unconfirmed. Check it in game with:
 /run print(GetBuildInfo())
 ```
 
-Forever's encounter loot history does not provide a documented direct mapping from `rollID` to encounter/drop identity. LootGoblin uses unique item-link matches within a narrow time window. Simultaneous identical items are marked uncertain instead of being attributed by guessed arrival order. Some trash/chest rolls may lack history entries. Those records cannot produce reliable per-player statistics.
+Forever's encounter loot history does not provide a documented direct mapping from `rollID` to encounter/drop identity. LootGoblins uses unique item-link matches within a narrow time window. Simultaneous identical items are marked uncertain instead of being attributed by guessed arrival order. Some trash/chest rolls may lack history entries. Those records cannot produce reliable per-player statistics.
 
 Before regular use, test real Need/Greed/Pass choices, binding confirmation acceptance and cancellation, wins and losses, ties, simultaneous and identical drops, all-pass outcomes, reloads during active rolls, persistence after logout/reload, and restoration with `/lg native`. Gamepad mode keeps its native presentation. Mock tests do not verify in-game rendering, protected/taint behavior, or compatibility with other addons.
 
-The complete usage notes and source references are in [LootGoblin/README.txt](LootGoblin/README.txt).
+The complete usage notes and source references are in [LootGoblins/README.txt](LootGoblins/README.txt).
 
 ## Source layout
 
 | File | Purpose |
 | --- | --- |
-| `LootGoblin/Model.lua` | Roll state, matching, sorting, completion, and close timing |
-| `LootGoblin/History.lua` | Persistent records, identities, aliases, statistics, and CSV |
-| `LootGoblin/UI.lua` | Loot panels and settings |
-| `LootGoblin/StatsUI.lua` | History, statistics, detail, and CSV windows |
-| `LootGoblin/Core.lua` | Game events and native loot UI integration |
+| `LootGoblins/Model.lua` | Roll state, matching, sorting, completion, and close timing |
+| `LootGoblins/History.lua` | Persistent records, identities, aliases, statistics, and CSV |
+| `LootGoblins/UI.lua` | Loot panels and settings |
+| `LootGoblins/StatsUI.lua` | History, statistics, detail, and CSV windows |
+| `LootGoblins/Core.lua` | Game events and native loot UI integration |
 | `tests/` | Model, history, integration, and browser checks |
 | `previews/` | Standalone browser mockups with sample data |
 | `scripts/package.py` | Addon ZIP builder |

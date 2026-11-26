@@ -1,12 +1,12 @@
 # Automatic releases
 
-LootGoblin uses the versioned workflows in [CraightonH/wow-addon-template](https://github.com/CraightonH/wow-addon-template/blob/main/docs/reusable-workflows.md). Its source layout, Lua tests and reproducible Python builder remain local to this repository. The shared workflows own package validation, release manifests, GitHub releases and CurseForge deployment.
+LootGoblins uses the versioned workflows in [CraightonH/wow-addon-template](https://github.com/CraightonH/wow-addon-template/blob/main/docs/reusable-workflows.md). Its source layout, Lua tests and reproducible Python builder remain local to this repository. The shared workflows own package validation, release manifests, GitHub releases and CurseForge deployment.
 
 ## Configuration
 
-`addon.json` targets CurseForge project **1806558**, Forever interface **16001**, source directory `LootGoblin/` and artifact directory `dist/`. The TOC declares the same project ID. The ZIP includes the MIT license.
+`addon.json` targets CurseForge project **1806558**, Forever interface **16001**, source directory `LootGoblins/` and artifact directory `dist/`. The TOC declares the same project ID. The ZIP includes the MIT license.
 
-The repository's `CF_API_TOKEN` secret is passed only to the deployment workflow. The job uses the `curseforge` environment; no environment approval is configured, so a valid tag can deploy automatically. No additional release-enable variable is needed in LootGoblin. Keep the author token in GitHub Secrets.
+The repository's `CF_API_TOKEN` secret is passed only to the deployment workflow. The job uses the `curseforge` environment; no environment approval is configured, so a valid tag can deploy automatically. No additional release-enable variable is needed in LootGoblins. Keep the author token in GitHub Secrets.
 
 ## Publish a release
 
@@ -15,7 +15,7 @@ First test the intended code in game, commit and push it, then create an unused 
 ```sh
 git switch main
 git pull --ff-only
-git tag -a v0.3.2-alpha.1 -m 'LootGoblin 0.3.2 alpha 1'
+git tag -a v0.3.2-alpha.1 -m 'LootGoblins 0.3.2 alpha 1'
 git push origin v0.3.2-alpha.1
 ```
 
@@ -35,4 +35,4 @@ If an upload has an ambiguous network failure, or succeeded but saving its recei
 
 ## Adopt shared updates
 
-All three caller workflows reference `workflows-v1.0.1`. To adopt a new shared release, update both `uses: ...@VERSION` and `tooling-ref: VERSION` in each caller and verify branch CI. No shared scripts need to be copied into LootGoblin.
+All three caller workflows reference `workflows-v1.0.1`. To adopt a new shared release, update both `uses: ...@VERSION` and `tooling-ref: VERSION` in each caller and verify branch CI. No shared scripts need to be copied into LootGoblins.

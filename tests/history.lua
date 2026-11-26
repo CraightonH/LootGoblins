@@ -1,7 +1,7 @@
-local base=os.getenv("LOOTGOBLIN_ADDON") or "LootGoblin"
+local base=os.getenv("LOOTGOBLINS_ADDON") or "LootGoblins"
 local A={}
-assert(loadfile(base.."/Model.lua"))("LootGoblin",A)
-assert(loadfile(base.."/History.lua"))("LootGoblin",A)
+assert(loadfile(base.."/Model.lua"))("LootGoblins",A)
+assert(loadfile(base.."/History.lua"))("LootGoblins",A)
 local now=1800000000
 function time() return now end
 function date(fmt,n) return os.date(fmt,n) end
