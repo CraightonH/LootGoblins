@@ -35,4 +35,4 @@ If an upload has an ambiguous network failure, or succeeded but saving its recei
 
 ## Adopt shared updates
 
-All three caller workflows reference `workflows-v1.0.0`. To adopt a new shared release, update both `uses: ...@VERSION` and `tooling-ref: VERSION` in each caller and verify branch CI. No shared scripts need to be copied into LootGoblin.
+All three caller workflows reference `workflows-v1.0.1`. To adopt a new shared release, update both `uses: ...@VERSION` and `tooling-ref: VERSION` in each caller and verify branch CI. No shared scripts need to be copied into LootGoblin.

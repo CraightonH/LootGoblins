@@ -8,8 +8,8 @@ permissions:
   contents: read
 jobs:
   checks:
-    uses: CraightonH/wow-addon-template/.github/workflows/reusable-build.yml@workflows-v1.0.0
+    uses: CraightonH/wow-addon-template/.github/workflows/reusable-build.yml@workflows-v1.0.1
     with:
-      tooling-ref: workflows-v1.0.0
+      tooling-ref: workflows-v1.0.1
       test-command: make test LUA=lua5.1 && make test LUA=lua5.4
       package-command: python3 scripts/package.py
