@@ -1,0 +1,4 @@
+Tool: built-in image_gen
+Edit target: lootgoblin-thumbnail.png
+
+Use case: text-localization. Edit target: the provided existing square fantasy addon thumbnail. Change ONLY the brand lettering on the bottom wooden plaque from 'LootGoblin' to exactly 'LootGoblins' (capital L, capital G, lowercase trailing s; L-o-o-t-G-o-b-l-i-n-s). Match the existing large ornate beveled golden fantasy lettering, highlights, shadows and perspective, fitting the full new word comfortably inside the same plaque with readable margins. Preserve the rest of the original image as closely as possible: the single grinning green goblin, ears, hair, costume, hands, ivory dice, coin pouch, treasure chest, coins, lighting, colors, detailed painted style, square composition and opaque background. Do not add more goblins or any other words, labels or watermarks. Deliver a finished project thumbnail.

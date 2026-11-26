@@ -1,12 +1,17 @@
 ## Interface: 16001
 ## Title: LootGoblins
-## Notes: Per-item group loot decisions, player rolls and explicit results.
+## Notes: A compact tabbed loot queue, roll history, and optional honor-ledger side bets.
 ## Author: LootGoblins contributors
-## Version: 0.3.1-alpha
+## Version: 0.9.0-alpha
 ## X-Curse-Project-ID: 1806558
 ## SavedVariables: LootGoblinsDB
 Model.lua
 History.lua
+BetModel.lua
+BetComms.lua
 UI.lua
 StatsUI.lua
+BetUI.lua
+QueueUI.lua
+Demo.lua
 Core.lua

@@ -5,7 +5,7 @@ local compatible=false
 local function message(s) print("|cff73c7ffLootGoblins:|r "..s) end
 local function readItem(r)
     local texture,name,count,quality,bop,need,greed,de,rn,rg,rd,skill,transmog=GetLootRollItemInfo(r.id)
-    r.texture=texture; r.name=name; r.link=GetLootRollItemLink(r.id) or r.link
+    r.texture=texture; r.name=name; r.quality=quality; r.count=count; r.link=GetLootRollItemLink(r.id) or r.link
     r.allowed={[0]=true,[1]=need,[2]=greed,[3]=de,[4]=transmog}
     r.reasons={[1]=rn and _G["LOOT_ROLL_INELIGIBLE_REASON"..rn],
         [2]=rg and _G["LOOT_ROLL_INELIGIBLE_REASON"..rg],
@@ -44,43 +44,32 @@ function A.RefreshHistory()
         end
     end
 end
--- Keep Blizzard's scripts and confirmation handling running. Only conceal their
--- presentation, and restore it immediately when replacement is disabled.
+-- Preserve the client event/confirmation scripts. Only tracked roll presentations
+-- are suppressed, and every mouse/alpha change is restored in Blizzard-only mode.
 function A.ApplyNative()
-    local gamepad=InputUtil and InputUtil.IsGamepadUIEnabled and InputUtil.IsGamepadUIEnabled()
-    local hide=compatible and A.db and A.db.replaceNative and not gamepad
-    local function visit(frame,conceal)
-        if not frame then return end
-        if conceal then
+    local function mouse(frame,suppress)
+        if suppress then
             if frame.lootGoblinsMouse==nil then frame.lootGoblinsMouse=frame:IsMouseEnabled() and 1 or 0 end
             frame:EnableMouse(false)
         elseif frame.lootGoblinsMouse~=nil then
             frame:EnableMouse(frame.lootGoblinsMouse==1); frame.lootGoblinsMouse=nil
         end
-        for _,child in ipairs({frame:GetChildren()}) do visit(child,conceal) end
+        for _,child in ipairs({frame:GetChildren()}) do mouse(child,suppress) end
     end
     for i=1,4 do
-        local f=_G["GroupLootFrame"..i]
-        if f then
-            -- During reloads or an unsupported roll, keep native controls until
-            -- a custom record exists. Never hide an untracked roll.
-            local conceal=hide and f.rollID and A.byID[f.rollID]~=nil
-            if conceal then
-                if not f.lootGoblinsAlpha then f.lootGoblinsAlpha=f:GetAlpha() end
-                f:SetAlpha(0)
-            elseif f.lootGoblinsAlpha then f:SetAlpha(f.lootGoblinsAlpha); f.lootGoblinsAlpha=nil end
-            visit(f,conceal)
+        local frame=_G["GroupLootFrame"..i]
+        if frame then
+            local suppress=compatible and A.lootWindow and A.db.presentation=="queue" and frame.rollID and A.byID[frame.rollID]
+            if suppress then
+                if frame.lootGoblinsAlpha==nil then frame.lootGoblinsAlpha=frame:GetAlpha() end
+                frame:SetAlpha(0)
+            elseif frame.lootGoblinsAlpha~=nil then frame:SetAlpha(frame.lootGoblinsAlpha); frame.lootGoblinsAlpha=nil end
+            mouse(frame,suppress)
         end
     end
 end
 function A.Choose(r,kind)
-    if r.demo then
-        r.choice=kind
-        local map={[0]=5,[1]=0,[2]=3,[3]=3,[4]=2}
-        r.rows[1].state=map[kind]
-        if kind==0 then r.rows[1].roll=nil else r.rows[1].roll=64 end
-        A.Render(); return
-    end
+    if r.simulation then r.simulation:Choose(kind); A.Render(); return end
     if r.finished or r.closed or r.choice or not r.allowed[kind] then return end
     local left=GetLootRollTimeLeft(r.id)
     if not left or left<=0 then return end
@@ -110,38 +99,12 @@ local function startRoll(id,duration)
             A.RecordRoll(A.db,other,true)
         end
     end
-    A.byID[id]=r; A.rolls[#A.rolls+1]=r; A.selected=r
-    A.historyView=false; A.Render()
-    C_Timer.After(0.6,function() A.RefreshHistory(); A.Render(); A.ApplyNative() end)
-end
-function A.Demo()
-    for i=#A.rolls,1,-1 do if A.rolls[i].demo then table.remove(A.rolls,i) end end
-    local samples={{"Emberstone Staff","Interface\\Icons\\INV_Staff_13"},
-        {"Cobalt Ring","Interface\\Icons\\INV_Jewelry_Ring_03"},
-        {"Gilded Mantle","Interface\\Icons\\INV_Shoulder_02"}}
-    for i,s in ipairs(samples) do
-        local r=A.NewRoll(-i,nil,GetTime(),60,nil); r.name=s[1]; r.texture=s[2]; r.demo=true
-        r.allowed={[0]=true,[1]=true,[2]=true}
-        r.rows={{playerName="You",isSelf=true,playerClass="MAGE",state=4},
-            {playerName="Thorn",playerClass="WARRIOR",state=0,roll=87},
-            {playerName="Mira",playerClass="PRIEST",state=3,roll=99},
-            {playerName="Bram",playerClass="ROGUE",state=5},
-            {playerName="Liora",playerClass="DRUID",state=4}}
-        r.waiting=2; r.match=nil
-        A.rolls[#A.rolls+1]=r
-        C_Timer.After(8+i,function()
-            local d={rollInfos=A.Copy(r.rows)}
-            d.rollInfos[1].state=({[0]=5,[1]=0,[2]=3,[3]=3,[4]=2})[r.choice] or 0
-            if r.choice==0 then d.rollInfos[1].roll=nil
-            else d.rollInfos[1].roll=i==2 and 100 or 64 end
-            d.rollInfos[5].state=3; d.rollInfos[5].roll=42
-            if i==2 and d.rollInfos[1].state==0 then d.rollInfos[1].isWinner=true
-            else d.rollInfos[2].isWinner=true end
-            A.ApplyDrop(r,d,GetTime()); A.Render()
-        end)
+    A.byID[id]=r; A.rolls[#A.rolls+1]=r
+    if not A.selected or A.selected.dismissed or A.selected.finished or A.selected.choice~=nil then
+        A.selected=r; A.queueReveal=true
     end
-    A.historyView=false; A.Render()
-    message("Preview: three simulated items. Results resolve in about ten seconds.")
+    A.Render()
+    C_Timer.After(0.6,function() A.RefreshHistory(); A.Render(); A.ApplyNative() end)
 end
 local elapsed=0
 events:SetScript("OnUpdate",function(_,dt)
@@ -173,6 +136,8 @@ events:SetScript("OnUpdate",function(_,dt)
         A.poll=(A.poll or 0)+0.25
         if A.poll>=1 then A.poll=0; A.RefreshHistory(); A.RefreshStatsIfVisible() end
     end
+    if A.betClient then A.betClient:Tick() end
+    if A.betWindow and A.betWindow:IsShown() then A.RenderBets() end
     A.Render()
 end)
 events:SetScript("OnEvent",function(_,event,...)
@@ -184,9 +149,11 @@ events:SetScript("OnEvent",function(_,event,...)
             C_LootHistory.GetSortedDropsForEncounter and C_LootHistory.GetSortedInfoForDrop and C_LootHistory.GetLootHistoryTime and
             GetLootRollItemInfo and GetLootRollItemLink and RollOnLoot
         A.BuildUI()
+        A.InitBetting()
+        A.RegisterSettings()
         if compatible then
             for _,e in ipairs({"START_LOOT_ROLL","CANCEL_LOOT_ROLL","CANCEL_ALL_LOOT_ROLLS",
-                "LOOT_HISTORY_UPDATE_DROP","LOOT_HISTORY_UPDATE_ENCOUNTER","LOOT_HISTORY_CLEAR_HISTORY"}) do
+                "LOOT_HISTORY_UPDATE_DROP","LOOT_HISTORY_UPDATE_ENCOUNTER","LOOT_HISTORY_CLEAR_HISTORY","GET_ITEM_INFO_RECEIVED"}) do
                 events:RegisterEvent(e)
             end
             -- Submission without auto-confirmation. Blizzard owns bind prompts.
@@ -202,12 +169,14 @@ events:SetScript("OnEvent",function(_,event,...)
         SLASH_LOOTGOBLINS1="/lg"; SLASH_LOOTGOBLINS2="/lootgoblins"
         SlashCmdList.LOOTGOBLINS=function(input)
             local cmd=(input or ""):lower():match("^%s*(%S+)")
-            if cmd=="demo" then A.Demo()
+            if cmd=="demo" then A.Demo(tonumber((input or ""):match("%s+(%d+)")),(input or ""):lower():match("^%s*demo%s+(pattern)%s*$"))
             elseif cmd=="history" then A.OpenHistory("drops")
             elseif cmd=="stats" then A.OpenHistory("players")
             elseif cmd=="export" then A.OpenExport()
-            elseif cmd=="session" then A.historyView=not A.historyView; A.Render()
-            elseif cmd=="native" then A.db.replaceNative=false; A.ApplyNative(); message("Default loot popups restored.")
+            elseif cmd=="bets" then A.OpenBets()
+            elseif cmd=="session" then A.OpenHistory("drops")
+            elseif cmd=="queue" then A.db.presentation="queue"; A.ApplyNative(); A.Render()
+            elseif cmd=="native" then A.db.presentation="none"; A.ApplyNative(); A.Render(); message("Default loot popups restored.")
             elseif cmd=="clear" then
                 for _,r in ipairs(A.rolls) do if r.finished then r.dismissed=true; r.pinned=false end end; A.Render()
             else A.OpenSettings() end
@@ -219,6 +188,9 @@ events:SetScript("OnEvent",function(_,event,...)
     elseif event=="CANCEL_ALL_LOOT_ROLLS" then
         for _,r in ipairs(A.rolls) do if not r.finished and not r.demo then r.closed=true; finishUnknown(r,GetTime(),"Roll cancelled · outcome unconfirmed") end end
         A.Render()
+    elseif event=="GET_ITEM_INFO_RECEIVED" then
+        A.itemSizeRevision=(A.itemSizeRevision or 0)+1
+        if A.lootWindow then A.lootWindow.itemTooltip.queueLink=nil end; A.Render()
     elseif event=="LOOT_HISTORY_CLEAR_HISTORY" then
         for _,r in ipairs(A.rolls) do if r.key and not r.finished then
             r.key=nil; r.match="Loot history was cleared"; finishUnknown(r,GetTime())

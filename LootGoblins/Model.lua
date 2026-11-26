@@ -1,8 +1,10 @@
 local _, A = ...
-A.defaults = {layout="stack", closeAfter=20, scale=1, width=400, rowHeight=18,
+A.defaults = {presentation="queue", layout="stack", closeAfter=20, scale=1, width=400, rowHeight=18,
     opacity=0.96, locked=false, pauseHover=true, showPassed=true, classColors=true,
-    sort="priority", replaceNative=true, historyLimit=60, x=0, y=180,
-    maxHeight=650, sound=false, fontSize=11, compact=true, groupSeparators=true}
+    sort="priority", historyLimit=60, x=0, y=180,
+    maxHeight=650, sound=false, fontSize=11, compact=true, groupSeparators=true,
+    betsEnabled=false, betPercent=20, betCutoff=10,
+    tooltipAuctionator=true, tooltipGearQuest=true}
 A.labels = {[0]="Need", [1]="Need (off spec)", [2]="Transmog", [3]="Greed",
     [4]="Waiting", [5]="Pass"}
 A.colors = {[0]="73c7ff", [1]="73c7ff", [2]="d6a2ff", [3]="ffce70",
@@ -29,13 +31,29 @@ function A.InitDB(db)
     for k,v in pairs(A.defaults) do
         if type(db[k])~=type(v) then db[k]=v end
     end
+    local positions={}
+    if type(db.lootPositions)=="table" then
+        for i=1,4 do
+            local p=db.lootPositions[i]
+            if type(p)=="table" and type(p.x)=="number" and type(p.y)=="number" and
+                p.x==p.x and p.y==p.y and math.abs(p.x)<=4000 and math.abs(p.y)<=4000 then
+                positions[i]={x=p.x,y=p.y}
+            end
+        end
+    end
+    db.lootPositions=positions
+    -- One queue replaces all per-roll panels; keep the explicit Blizzard-only option.
+    if db.presentation~="none" then db.presentation="queue" end
+    db.replaceNative=nil
     if db.layout~="stack" and db.layout~="tabs" and db.layout~="windows" then db.layout="stack" end
     local ranges={closeAfter={0,300},scale={0.65,1.6},width={380,650},rowHeight={18,32},
-        opacity={0.4,1},historyLimit={10,200},maxHeight={300,900},fontSize={10,18},x={-4000,4000},y={-4000,4000}}
+        opacity={0.4,1},historyLimit={10,200},maxHeight={300,900},fontSize={10,18},x={-4000,4000},y={-4000,4000},
+        betPercent={0,20},betCutoff={10,30}}
     for k,r in pairs(ranges) do
         if db[k]~=db[k] then db[k]=A.defaults[k] end
         db[k]=math.max(r[1],math.min(r[2],db[k]))
     end
+    db.betPercent=math.floor(db.betPercent); db.betCutoff=math.floor(db.betCutoff)
     return db
 end
 function A.NewRoll(id, link, now, duration, historyNow)
@@ -81,7 +99,10 @@ function A.ApplyDrop(r,d,now)
         if p.isWinner then winner=p end
         if p.isSelf then own=p end
     end
-    if own then r.choice=({[0]=1,[1]=1,[2]=4,[3]=2,[5]=0})[own.state] end
+    if own and own.state~=4 then
+        local choice=({[0]=1,[1]=1,[2]=4,[3]=2,[5]=0})[own.state]
+        if choice~=nil then r.choice=choice end
+    end
     -- The winner flag on a player is authoritative. Never infer from the highest
     -- visible roll, from currentLeader, a zero timer, or a missing win toast.
     if winner or d.allPassed then
@@ -97,15 +118,20 @@ function A.ApplyDrop(r,d,now)
         r.status=r.waiting>0 and "Rolling" or "Resolving"
     end
 end
+function A.HideChoices(r,db)
+    return not r.resultConfirmed and (db.betsEnabled or r.betPrivacy)
+end
 function A.SortedRows(r,db)
+    local hidden=A.HideChoices(r,db)
     local rows={}
     for _,p in ipairs(r.rows) do
-        if db.showPassed or p.state~=5 then rows[#rows+1]=p end
+        if hidden or db.showPassed or p.state~=5 then rows[#rows+1]=p end
     end
     table.sort(rows,function(a,b)
-        if db.sort=="name" then return (a.playerName or "")<(b.playerName or "") end
+        if hidden then return (a.playerName or a.playerGUID or "")<(b.playerName or b.playerGUID or "") end
         local ap,bp=priority[a.state] or 6,priority[b.state] or 6
         if ap~=bp then return ap<bp end
+        if db.sort=="name" then return (a.playerName or "")<(b.playerName or "") end
         if (a.roll or -1)~=(b.roll or -1) then return (a.roll or -1)>(b.roll or -1) end
         if (not not a.isWinner)~=(not not b.isWinner) then return not not a.isWinner end
         return (a.playerName or "")<(b.playerName or "")

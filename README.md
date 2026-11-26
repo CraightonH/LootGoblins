@@ -1,135 +1,63 @@
 # LootGoblins
 
-Compact group-loot panels and persistent roll history for **WoW Forever 1.60.1**, provisionally targeting Interface `16001`.
+A compact loot queue with optional side bets for WoW Forever (Interface 16001).
 
-**Status: 0.3.1 alpha.** The code has passed simulated model, history, UI, and browser checks. It has not been tested inside a running Forever client. The browser previews show the intended interface using illustrative data; they are not in-game screenshots.
+## Loot window
 
-## Features
+All simultaneous drops share one draggable window. Item icons form connected tabs across the top, with radial loot timers and a check mark after your choice. Need, Greed, and Pass stay fixed at the right; Disenchant and Transmog appear when offered by the client. The tab strip scrolls with its arrows or mouse wheel. Arrows appear only when the icons overflow, and auto-advance scrolls the next undecided item into view.
 
-- Need, Greed, and Pass controls with the party's choices and roll numbers directly underneath each item.
-- Compact panels by default, with larger panels, tabs, or separate windows available in settings.
-- Need above Greed, then Pass, with separators between choice groups and undecided players last. Transmog appears between Need and Greed when offered by the client.
-- A yellow bar showing how many players have chosen, turning green once all recorded players have chosen. The server may still be resolving the winner.
-- Explicit win, loss, pass, all-pass, and unconfirmed results; configurable closing, hover hold, and pinning.
-- Persistent drop history with UTC timestamps, item, source, participant choices, rolls, and confirmed winner.
-- Per-character statistics: contested win rate, expected wins, win/loss streaks, solo wins, and total items won.
-- Manual alt/account labels, date and choice-tier filters, a searchable drop ledger, and CSV copying.
+The details pane uses native GameTooltip rendering and refresh handling, including embedded crafted-item previews for patterns and recipes. The party table sits beside it, highlights the confirmed winner, and sorts revealed choices Need → Transmog → Greed → Pass → Waiting. Personal outcomes tint the relevant item icon; the window has no outcome border. There is no footer. The window measures all queued item descriptions in advance and keeps the largest pane sizes until the queue empties. Changing tabs or dismissing a larger item cannot shrink the active window. Turning betting off still explicitly removes its controls, stakes, and column and narrows the window.
 
-## Install the alpha
+The client still owns loot submission and binding confirmations. Untracked or unsupported native loot frames remain available. `/lg native` restores Blizzard's popups; `/lg queue` restores LootGoblins's queue. Avoid running another loot-frame replacement alongside LootGoblins.
 
-1. Download this repository with **Code → Download ZIP**, or clone it.
-2. Copy the inner `LootGoblins/` directory into the Forever client's `Interface/AddOns/` directory.
-3. Confirm the resulting path is `Interface/AddOns/LootGoblins/LootGoblins.toc`.
-4. Enable LootGoblins in the character selection AddOns list. Disable other group-loot replacements, including BetterGroupLoot, while evaluating it.
-5. Run `/lg demo` to preview three simulated rolls, then `/lg` for settings.
+## Demo and testing
 
-You can also build an addon-only ZIP:
+`/lg demo` simulates three drops. `/lg demo pattern` previews a real pattern and its crafted output. `/lg demo 10` exercises overflow with ten drops (up to forty supported). **Demo and real drops use exactly the same `QueueUI.lua` window, renderer, tabs, actions, tooltips, table, sizing, and result effects.** `Demo.lua` only creates sample item/party data, simulates choices/bets, and schedules outcomes. It creates no separate UI, native-template copies, real roll submissions, network bets, or history records. Results arrive in about forty seconds; rerunning the command replaces the samples and invalidates their old timers.
 
-```sh
-python3 scripts/package.py
-```
+This release is checked with simulated game APIs, not visually verified inside the running game client. Check real drops, confirmation acceptance/cancellation, simultaneous items, tab overflow, winner effects, dragging, item cache loading, and two-client betting in game.
 
-This writes `dist/LootGoblins-0.3.1-alpha.zip`. Extract it into `Interface/AddOns/`.
+## Side bets
+
+Enable side bets under Options → AddOns → LootGoblins. Click **1c**, **1s**, or **1g** beside a player to add that amount to your prediction. Repeated clicks accumulate, and you can back multiple players. The backed row shows your running stake.
+
+Bets remain open until loot resolution, including while all players have chosen or the timer has reached zero and the server is still resolving. The former selection-percentage and ten-second limits are removed. Eligible-roster and unambiguous-item checks still apply.
+
+Other players' choices and all roll numbers stay hidden until a confirmed loot result. Blind rows use stable name order and include passes, so ordering and filtering cannot reveal choices. Once an item has been shown with betting enabled, it remains blind through resolution even if betting is switched off. This affects LootGoblins's display; it does not prevent inspecting information supplied elsewhere by the game or another addon.
+
+This is an honor ledger. No money is collected or transferred. Correct predictions split the pledged pool proportionally, with exact copper accounting. Existing bets remain in the ledger when betting is disabled. `/lg bets` opens saved rounds and local payment notes. See [betting details](docs/betting.md).
+
+Under **Settings → Common → Tooltip addons**, separate **Auctionator prices** and **GearQuest rankings and notes** checkboxes control their contributions to item details. Both default on; changes apply immediately and persist across reloads, without changing either addon globally.
+
+Tooltip addons using the shared item processor can contribute to the embedded tooltips. LootGoblins follows Auctionator's `NotGameTooltip` naming convention and resets GearQuestForever's per-tooltip guards when content is cleared. Addons that explicitly target only Blizzard's `GameTooltip` or `ItemRefTooltip` may require their own integration; their adjustments cannot be universally transferred to a separate embedded tooltip.
 
 ## Commands
 
 | Command | Action |
 | --- | --- |
-| `/lg` | Open settings |
-| `/lg demo` | Simulate three rolls without submitting real loot choices |
-| `/lg history` | Open persistent drop history |
-| `/lg stats` | Open character statistics and manual aliases |
-| `/lg export` | Open selectable CSV text for copying |
-| `/lg session` | Show the current session's live-panel history |
-| `/lg clear` | Dismiss completed panels |
-| `/lg native` | Immediately restore the default loot popups |
+| `/lg` or `/lootgoblins` | Open game settings category |
+| `/lg demo [count]` | Simulate drops in the real queue renderer |
+| `/lg queue` | Enable the LootGoblins loot window |
+| `/lg native` | Restore Blizzard's loot popups |
+| `/lg clear` | Dismiss completed queue items |
+| `/lg history` or `/lg session` | Open saved drop history |
+| `/lg stats` | Open player statistics |
+| `/lg export` | Open CSV export |
+| `/lg bets` | Open the side-bet ledger |
 
-`/lootgoblins` is an alias for `/lg`.
+Use **−** to minimize the pane to its header and **+** to restore it; the header stays in place and shows remaining choices. The close button unlocks after all available rolls have been chosen (or can no longer be acted on). Closing hides the current queue while results, history, and bets continue in the background; newly arriving loot opens the pane again.
 
-## Interpreting the statistics
+Drag the window header or background to move it. Position and scale persist across reloads. Settings include position locking, hover-paused result dismissal, result timeout, table font/row sizing, class colors, sounds, and history retention.
 
-A **try** is a confirmed, contested roll in the highest chosen priority tier. A Greed 99 against a Need 1 does not count as an eligible loss. Passes, all-pass drops, unknown outcomes, and inconsistent or incomplete pools are excluded from win-rate calculations. Uncontested wins are shown separately.
+## Install
 
-Expected wins sums each character's eligible share of the contested rolls, assuming equal chances within each winning tier. It is a comparison baseline, not a test for bias. Streaks cover successive eligible contested outcomes within the selected date, search, and tier filters. Small samples can vary substantially.
-
-Characters use GUIDs when supplied by the client and name-realm fallbacks otherwise. Other players' real account names and BattleTags are not exposed through the loot API. Shared alt/account labels are assigned manually and do not verify account ownership.
-
-History records only group-loot rolls observed while the addon is running. The default retention is the newest **5,000 drops**, configurable from 100 to 50,000 in Advanced settings. Decreasing the limit prunes older records.
-
-Data is kept in account-level `LootGoblinsDB` SavedVariables and shared by your characters using the same WoW installation/account. The game saves it during normal logout or reload; a crash can lose unsaved changes. There is no cloud sync, retrospective collection, or automatic chat posting. Demo rolls never enter persistent statistics.
-
-## Browser previews
-
-Serve the repository locally:
-
-```sh
-python3 -m http.server 8000
-```
-
-Then open:
-
-- <http://localhost:8000/previews/loot.html> — compact loot panels and layout settings.
-- <http://localhost:8000/previews/history.html> — sample history, character statistics, and manual alias grouping.
-
-The history preview's sample summaries were computed by the addon's Lua statistics code. The previews contain no real player history and run independently of WoW. They optionally load Lucide icons from a version-pinned CDN.
+Extract the `LootGoblins` folder into the client's `Interface/AddOns/`. The TOC must be at `Interface/AddOns/LootGoblins/LootGoblins.toc`. Reload the UI after updating; restarting or returning to character selection may be needed for newly added source files. History and honor-ledger records use the existing `LootGoblinsDB` saved variable.
 
 ## Releases
 
 Pushing an annotated `vX.Y.Z`, `vX.Y.Z-alpha[.N]`, or `vX.Y.Z-beta[.N]` tag runs tests, builds a validated ZIP, creates a GitHub release and deploys that same archive to CurseForge project **1806558**. The package version comes from the tag. See [automatic releases](docs/releases.md) for setup, release commands and recovery.
 
-## Development and checks
+## Development
 
-There are no bundled addon libraries or runtime package dependencies.
+`make test` runs the model, persistent-history, asynchronous betting, and mocked game integration suites with `lua` (override with `LUA=/path/to/lua`). Integration loads the actual TOC and verifies that live and simulated drops share the same UI with no demo branches in the renderer. `make package` builds `dist/LootGoblins-0.9.0-alpha.zip` with Python's standard library.
 
-Run the Lua checks with Lua 5.1 or 5.4 from the repository root:
-
-```sh
-lua tests/model.lua
-lua tests/history.lua
-lua tests/integration.lua
-```
-
-Or use `make test LUA=lua5.1`. On Linux with Python and `liblua5.4.so.0` installed, the included runner needs no Python packages:
-
-```sh
-python3 tests/run_lua.py tests/model.lua tests/history.lua tests/integration.lua
-```
-
-The suites cover 14 model scenarios, 12 history scenarios, and mocked addon integration, including choice progress, group sorting, duplicate-item ambiguity, late results, aliases, retention, and CSV escaping. GitHub Actions runs these against Lua 5.1 and 5.4 and verifies addon packaging.
-
-Optional browser checks:
-
-```sh
-python3 -m pip install -r requirements-dev.txt
-python3 -m playwright install chromium
-python3 tests/previews.py
-```
-
-Set `CHROMIUM_PATH` to use an existing Chromium executable. Browser checks start their own local server and exercise the previews at 320, 520, and 736 pixels.
-
-## Compatibility and remaining validation
-
-The client build is still unconfirmed. Check it in game with:
-
-```text
-/run print(GetBuildInfo())
-```
-
-Forever's encounter loot history does not provide a documented direct mapping from `rollID` to encounter/drop identity. LootGoblins uses unique item-link matches within a narrow time window. Simultaneous identical items are marked uncertain instead of being attributed by guessed arrival order. Some trash/chest rolls may lack history entries. Those records cannot produce reliable per-player statistics.
-
-Before regular use, test real Need/Greed/Pass choices, binding confirmation acceptance and cancellation, wins and losses, ties, simultaneous and identical drops, all-pass outcomes, reloads during active rolls, persistence after logout/reload, and restoration with `/lg native`. Gamepad mode keeps its native presentation. Mock tests do not verify in-game rendering, protected/taint behavior, or compatibility with other addons.
-
-The complete usage notes and source references are in [LootGoblins/README.txt](LootGoblins/README.txt).
-
-## Source layout
-
-| File | Purpose |
-| --- | --- |
-| `LootGoblins/Model.lua` | Roll state, matching, sorting, completion, and close timing |
-| `LootGoblins/History.lua` | Persistent records, identities, aliases, statistics, and CSV |
-| `LootGoblins/UI.lua` | Loot panels and settings |
-| `LootGoblins/StatsUI.lua` | History, statistics, detail, and CSV windows |
-| `LootGoblins/Core.lua` | Game events and native loot UI integration |
-| `tests/` | Model, history, integration, and browser checks |
-| `previews/` | Standalone browser mockups with sample data |
-| `scripts/package.py` | Addon ZIP builder |
+`QueueUI.lua` owns the only loot renderer. `Demo.lua` owns the simulation adapter; `Core.lua` owns live events. `UI.lua` supplies settings. `Model.lua` supplies roll state, privacy, and sorting. `History.lua`/`StatsUI.lua` provide persistent history; `BetModel.lua`/`BetComms.lua`/`BetUI.lua` handle honor bets and ledger views.

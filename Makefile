@@ -5,6 +5,7 @@ PYTHON ?= python3
 test:
 	$(LUA) tests/model.lua
 	$(LUA) tests/history.lua
+	$(LUA) tests/betting.lua
 	$(LUA) tests/integration.lua
 	$(PYTHON) -m unittest discover -s tests -p 'test_package.py'
 
