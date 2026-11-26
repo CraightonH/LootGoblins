@@ -1,0 +1,8 @@
+{
+  "name": "LootGoblin",
+  "interface": 16001,
+  "source_directory": "LootGoblin",
+  "artifact_directory": "dist",
+  "curseforge_project_id": 1806558,
+  "curseforge_version_type_id": 88568
+}

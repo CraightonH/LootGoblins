@@ -1,4 +1,6 @@
 dist/
+.addon-tooling/
+.release-artifact/
 .work/
 .venv/
 __pycache__/

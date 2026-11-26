@@ -73,6 +73,10 @@ Then open:
 
 The history preview's sample summaries were computed by the addon's Lua statistics code. The previews contain no real player history and run independently of WoW. They optionally load Lucide icons from a version-pinned CDN.
 
+## Releases
+
+Pushing an annotated `vX.Y.Z`, `vX.Y.Z-alpha[.N]`, or `vX.Y.Z-beta[.N]` tag runs tests, builds a validated ZIP, creates a GitHub release and deploys that same archive to CurseForge project **1806558**. The package version comes from the tag. See [automatic releases](docs/releases.md) for setup, release commands and recovery.
+
 ## Development and checks
 
 There are no bundled addon libraries or runtime package dependencies.

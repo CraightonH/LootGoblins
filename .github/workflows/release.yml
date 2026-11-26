@@ -1,0 +1,19 @@
+name: Release and deploy
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  release:
+    uses: CraightonH/wow-addon-template/.github/workflows/reusable-release.yml@workflows-v1.0.0
+    with:
+      tooling-ref: workflows-v1.0.0
+      test-command: make test LUA=lua5.1 && make test LUA=lua5.4
+      package-command: python3 scripts/package.py
+      publish-curseforge: true
+    secrets:
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
